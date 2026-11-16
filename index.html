@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>AL Brows Контент</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AL Контент">
+<meta name="theme-color" content="#5f7a52">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: мобильное приложение — шапка с неделей, одна колонка карточек, нижняя панель вкладок */
+:root{
+  --bg:#f3f5f0; --surface:#ffffff; --sunk:#eaeee5; --fg:#1b2019; --muted:#5d6659; --line:#dce2d5;
+  --accent:#55704a; --accent-fg:#ffffff; --accent-soft:#e2eadb;
+  --ok:#2f7a4a; --ok-soft:#dcefe2; --warn:#97591c; --warn-soft:#f5e8d6; --tt:#c43d63; --tt-soft:#f8e1e8;
+  --display:"Unbounded","Manrope",system-ui,sans-serif;
+  --body:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  --nav-h:64px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121511; --surface:#1b1f19; --sunk:#232821; --fg:#e7ebe3; --muted:#a0a99b; --line:#2e352b;
+  --accent:#9fbe8b; --accent-fg:#14180f; --accent-soft:#263021;
+  --ok:#7fcb98; --ok-soft:#1d3226; --warn:#e2a766; --warn-soft:#34271a; --tt:#f08aa7; --tt-soft:#3a1f28; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121511; --surface:#1b1f19; --sunk:#232821; --fg:#e7ebe3; --muted:#a0a99b; --line:#2e352b;
+  --accent:#9fbe8b; --accent-fg:#14180f; --accent-soft:#263021;
+  --ok:#7fcb98; --ok-soft:#1d3226; --warn:#e2a766; --warn-soft:#34271a; --tt:#f08aa7; --tt-soft:#3a1f28; color-scheme:dark}
+html,body{min-height:100%}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+*{box-sizing:border-box}
+h1,h2,h3{font-family:var(--display);line-height:1.2;margin:0;text-wrap:balance}
+h1{font-size:22px;font-weight:700}
+h2{font-size:18px;font-weight:700}
+h3{font-size:15.5px;font-weight:500}
+p{margin:0}
+a{color:var(--accent);font-weight:700;text-underline-offset:3px;overflow-wrap:anywhere}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* gate */
+.gate{min-height:80vh;display:flex;align-items:center;justify-content:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.gate-box{width:100%;max-width:340px;display:flex;flex-direction:column;gap:18px;text-align:center}
+.logo{width:72px;height:72px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-family:var(--display);font-size:24px;font-weight:700;margin:0 auto}
+.code-input{font-family:var(--display);font-size:26px;letter-spacing:.4em;text-align:center;padding:14px 10px 14px 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);width:100%}
+.code-input:focus{border-color:var(--accent);outline:none}
+.btn{background:var(--accent);color:var(--accent-fg);border:0;border-radius:12px;padding:14px 18px;font-weight:800;font-size:16px;cursor:pointer}
+.btn:active{transform:scale(.98)}
+.err{color:var(--warn);font-size:14px;min-height:1.4em}
+.sr{position:absolute;left:-9999px}
+
+/* app */
+.top{padding-block:20px 8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.main{max-width:760px;margin:0 auto;padding-block:8px calc(var(--nav-h) + 32px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:22px}
+.section{display:flex;flex-direction:column;gap:12px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.focus{background:var(--accent-soft);border-color:transparent}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-family:var(--display);font-size:19px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--muted);line-height:1.35;display:block}
+ul.list,ol.list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.progress{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.bar{flex:1;height:8px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:99px;transition:width .3s}
+
+.day-head{display:flex;gap:12px;align-items:flex-start}
+.date{flex:none;width:50px;text-align:center;border-radius:10px;background:var(--sunk);padding:6px 0;line-height:1.15}
+.date b{display:block;font-family:var(--display);font-size:15px}
+.date span{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase}
+.day-title{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;font-weight:800;padding:3px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.chip.line{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.chip.tt{background:var(--tt-soft);color:var(--tt)}
+.toggles{display:flex;gap:8px;flex-wrap:wrap}
+.tg{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:99px;padding:6px 12px;font-size:13.5px;font-weight:700;cursor:pointer;background:var(--surface)}
+.tg[aria-pressed="true"]{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.tg:disabled{opacity:.55;cursor:default}
+details{border-top:1px dashed var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:800;font-size:14px;color:var(--accent);list-style:none;display:flex;align-items:center;gap:6px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"›";display:inline-block;transition:transform .2s;font-size:18px;line-height:1}
+details[open] summary::before{transform:rotate(90deg)}
+.det{display:flex;flex-direction:column;gap:12px;padding-top:10px}
+.label{font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.script{font-family:var(--mono);font-size:13px;line-height:1.55;background:var(--sunk);border-radius:10px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
+.refs{display:flex;flex-direction:column;gap:6px;font-size:14px}
+.copy{align-self:flex-start;background:transparent;border:1.5px solid var(--line);border-radius:10px;padding:6px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.mech{display:flex;flex-direction:column;gap:4px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.mech:last-child{border-bottom:0;padding-bottom:0}
+.mech-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.num{font-variant-numeric:tabular-nums;font-weight:800;white-space:nowrap}
+.week-row{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer}
+.week-row[aria-current="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.notice{background:var(--warn-soft);color:var(--fg);border-radius:12px;padding:14px;font-size:14px}
+.empty{text-align:center;padding:40px 10px;color:var(--muted)}
+
+/* bottom nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+.nav-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--nav-h)}
+.nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--muted);font-size:11.5px;font-weight:800}
+.nav a svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav a[aria-current="page"]{color:var(--accent)}
+@media (min-width:640px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.top{padding-top:max(20px,env(safe-area-inset-top,0px))}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div id="gate" class="gate" hidden>
+  <form class="gate-box" id="gate-form" autocomplete="off">
+    <div class="logo" aria-hidden="true">AL</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <h1>Контент-план студии</h1>
+      <p class="muted small">Введите код доступа</p>
+    </div>
+    <label for="code" class="sr">Код доступа</label>
+    <input id="code" class="code-input" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="••••••">
+    <button class="btn" type="submit">Войти</button>
+    <p class="err" id="gate-err" role="alert"></p>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <header class="top">
+    <div class="eyebrow">aleksabrow.s · м. Белорусская</div>
+    <h1 id="top-title">Загружаю план…</h1>
+    <p class="muted small" id="top-sub"></p>
+  </header>
+  <main class="main" id="view" aria-live="polite"></main>
+  <nav class="nav" aria-label="Разделы">
+    <div class="nav-in">
+      <a href="#week" data-tab="week"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Неделя</a>
+      <a href="#tiktok" data-tab="tiktok"><svg viewBox="0 0 24 24"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.5 2.6 2.3 4.4 5 4.7"/></svg>TikTok</a>
+      <a href="#profile" data-tab="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></svg>Профиль</a>
+      <a href="#archive" data-tab="archive"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3zM2 3h20v4H2zM9.5 11.5h5"/></svg>Архив</a>
+    </div>
+  </nav>
+</div>
+
+<script>
+(function(){
+  const KEY_STORE = "alb-key";
+  const WEEK_KEY = "alb-week";
+  const PROGRESS_STORE = "alb-progress";
+  const DATA_URL = "data.enc.json";
+  const COPY_RESET_MS = 2500;
+  const TABS = ["week","tiktok","profile","archive"];
+
+  const state = { weeks:[], selectedId:null, progress:{}, canWrite:true, status:"loading", enc:null };
+
+  const store = {
+    get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+    set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+    del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  };
+
+  function h(tag, attrs, ...kids){
+    const el = document.createElement(tag);
+    for (const [k,v] of Object.entries(attrs||{})){
+      if (v == null || v === false) continue;
+      if (k === "class") el.className = v;
+      else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? "" : v);
+    }
+    for (const kid of kids.flat()){
+      if (kid == null || kid === false || kid === "") continue;
+      el.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+    }
+    return el;
+  }
+  const safeUrl = u => /^https:\/\//.test(String(u||"")) ? u : null;
+  const arr = v => Array.isArray(v) ? v : [];
+
+  /* ---------- crypto ---------- */
+  const fromB64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const toB64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  async function fetchEnc(){
+    if (state.enc) return state.enc;
+    const r = await fetch(DATA_URL + "?t=" + Date.now(), { cache:"no-store" });
+    if (!r.ok) throw new Error("fetch " + r.status);
+    state.enc = await r.json();
+    return state.enc;
+  }
+  async function keyFromCode(code, enc){
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(code), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey({ name:"PBKDF2", salt:fromB64(enc.salt), iterations:enc.iter, hash:"SHA-256" },
+      base, { name:"AES-GCM", length:256 }, true, ["decrypt"]);
+  }
+  async function decrypt(key, enc){
+    const pt = await crypto.subtle.decrypt({ name:"AES-GCM", iv:fromB64(enc.iv) }, key, fromB64(enc.ct));
+    return JSON.parse(new TextDecoder().decode(pt));
+  }
+  async function storedKey(){
+    const raw = store.get(KEY_STORE);
+    if (!raw) return null;
+    try{ return await crypto.subtle.importKey("raw", fromB64(raw), "AES-GCM", true, ["decrypt"]); }catch(e){ return null; }
+  }
+
+  /* ---------- gate ---------- */
+  function loadData(payload){
+    state.weeks = arr(payload.weeks);
+    state.status = "ready";
+    try{ state.progress = JSON.parse(store.get(PROGRESS_STORE) || "{}") || {}; }catch(e){ state.progress = {}; }
+    const saved = store.get(WEEK_KEY);
+    state.selectedId = (saved && state.weeks.some(w=>w.id===saved)) ? saved : (state.weeks[0]?.id || null);
+  }
+  function showApp(){
+    document.getElementById("gate").hidden = true;
+    document.getElementById("app").hidden = false;
+    route();
+  }
+  function showGate(message){
+    document.getElementById("app").hidden = true;
+    document.getElementById("gate").hidden = false;
+    document.getElementById("gate-err").textContent = message || "";
+  }
+  async function initGate(){
+    const input = document.getElementById("code");
+    const err = document.getElementById("gate-err");
+    const btn = document.querySelector("#gate-form .btn");
+    document.getElementById("gate-form").addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const value = input.value.trim().toLowerCase();
+      if (!value){ err.textContent = "Введите код."; return; }
+      btn.disabled = true; btn.textContent = "Проверяю…"; err.textContent = "";
+      try{
+        const enc = await fetchEnc();
+        const key = await keyFromCode(value, enc);
+        const payload = await decrypt(key, enc);
+        store.set(KEY_STORE, toB64(await crypto.subtle.exportKey("raw", key)));
+        loadData(payload); showApp();
+      }catch(ex){
+        err.textContent = (ex && /fetch/.test(ex.message)) ? "Нет связи с сайтом. Проверьте интернет и попробуйте ещё раз." : "Код не подходит. Проверьте буквы и дефисы.";
+      }finally{ btn.disabled = false; btn.textContent = "Войти"; }
+    });
+    const key = await storedKey();
+    if (!key){ showGate(); return; }
+    try{
+      const payload = await decrypt(key, await fetchEnc());
+      loadData(payload); showApp();
+    }catch(ex){
+      if (ex && /fetch/.test(ex.message)) showGate("Нет связи с сайтом. Проверьте интернет.");
+      else { store.del(KEY_STORE); showGate("Код доступа изменился — введите новый."); }
+    }
+  }
+
+  /* ---------- progress (хранится на этом устройстве) ---------- */
+  function toggle(key, field){
+    if (!state.selectedId) return;
+    const all = JSON.parse(JSON.stringify(state.progress || {}));
+    const week = all[state.selectedId] || {};
+    week[key] = { ...(week[key]||{}), [field]: !(week[key] && week[key][field]) };
+    all[state.selectedId] = week;
+    state.progress = all;
+    store.set(PROGRESS_STORE, JSON.stringify(all));
+    render();
+  }
+  function watchProgress(){}
+  const weekProgress = () => (state.progress && state.progress[state.selectedId]) || {};
+
+  /* ---------- helpers ---------- */
+  const current = () => state.weeks.find(w=>w.id===state.selectedId) || null;
+  function tabNow(){ const t = location.hash.replace("#",""); return TABS.includes(t) ? t : "week"; }
+  function route(){
+    const tab = tabNow();
+    document.querySelectorAll(".nav a").forEach(a=>a.setAttribute("aria-current", a.dataset.tab===tab ? "page" : "false"));
+    render(); window.scrollTo(0,0);
+  }
+  function statusView(){
+    const msg = {
+      loading:"Загружаю план…",
+      slow:"План пока не загрузился. Проверьте интернет — страница обновится сама.",
+      nodb:"База плана недоступна в этом окне. Откройте ссылку на claude.ai, войдя в свой аккаунт.",
+      error:"Не получилось загрузить план. Закройте и откройте страницу снова."
+    }[state.status];
+    if (msg) return h("div",{class:state.status==="loading"?"empty":"notice"}, msg);
+    return h("div",{class:"empty"},"Плана пока нет. Он появится после воскресного анализа.");
+  }
+  function copyButton(text, label){
+    const b = h("button",{class:"copy",type:"button"}, label);
+    b.addEventListener("click", async ()=>{
+      try{ await navigator.clipboard.writeText(text); b.textContent = "Скопировано ✓"; }
+      catch(e){ b.textContent = "Выделите текст и скопируйте вручную"; }
+      setTimeout(()=>{ b.textContent = label; }, COPY_RESET_MS);
+    });
+    return b;
+  }
+  function toggles(key){
+    const p = weekProgress()[key] || {};
+    const dis = !state.canWrite;
+    return h("div",{class:"toggles"},
+      h("button",{class:"tg",type:"button","aria-pressed":p.shot?"true":"false",disabled:dis,onclick:()=>toggle(key,"shot")}, p.shot?"✓ Снято":"Снято"),
+      h("button",{class:"tg",type:"button","aria-pressed":p.posted?"true":"false",disabled:dis,onclick:()=>toggle(key,"posted")}, p.posted?"✓ Выложено":"Выложено"));
+  }
+  function refsBlock(refs){
+    const list = arr(refs).filter(r=>safeUrl(r.url));
+    if (!list.length) return null;
+    return h("div",{class:"refs"}, h("span",{class:"label"},"Образцы"),
+      list.map(r=>h("div",{}, h("a",{href:r.url,target:"_blank",rel:"noopener"}, r.label||"Ролик"), r.note ? " — "+r.note : "")));
+  }
+  function progressBar(prefix, total){
+    const done = Object.entries(weekProgress()).filter(([k,v])=>k.startsWith(prefix) && v && v.posted).length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    return h("div",{class:"progress"}, h("div",{class:"bar"}, h("i",{style:"width:"+pct+"%"})), done+" из "+total+" выложено · отметки хранятся на этом телефоне");
+  }
+
+  /* ---------- views ---------- */
+  function dayCard(item, key, isTT){
+    return h("article",{class:"card"},
+      h("div",{class:"day-head"},
+        h("div",{class:"date"}, h("span",{}, item.day||""), h("b",{}, item.date||"")),
+        h("div",{class:"day-title"},
+          h("h3",{}, item.title||""),
+          h("div",{class:"chips"},
+            item.who && h("span",{class:isTT?"chip tt":"chip"}, item.who),
+            item.goal && h("span",{class:"chip line"}, item.goal),
+            item.time && h("span",{class:"chip line"}, item.time)))),
+      item.hook && h("p",{class:"small"}, h("b",{},"Хук: "), item.hook),
+      toggles(key),
+      h("details",{},
+        h("summary",{}, isTT ? "Сценарий и подпись" : "Сценарий, сторис, образцы"),
+        h("div",{class:"det"},
+          item.format && h("span",{class:"label"}, item.format),
+          item.script && h("pre",{class:"script"}, item.script),
+          item.why && h("p",{class:"muted small"}, item.why),
+          item.caption && h("div",{class:"det",style:"padding-top:0"}, h("span",{class:"label"},"Подпись"), h("p",{class:"small"}, item.caption), copyButton(item.caption,"Скопировать подпись")),
+          arr(item.stories).length ? h("div",{}, h("span",{class:"label"},"Сторис / лайф-блог"), h("ul",{class:"list small"}, arr(item.stories).map(s=>h("li",{},s)))) : null,
+          refsBlock(item.refs))));
+  }
+  function weekView(w){
+    const reels = arr(w.reels);
+    return [
+      w.focus && h("div",{class:"card focus"}, h("span",{class:"label"},"Фокус недели"), h("p",{}, w.focus)),
+      arr(w.stats).length ? h("div",{class:"stats"}, arr(w.stats).map(s=>h("div",{class:"stat"}, h("b",{}, s.value), h("span",{}, s.label)))) : null,
+      arr(w.insights).length ? h("section",{class:"section"}, h("h2",{},"Что показал анализ"), h("div",{class:"card"}, h("ul",{class:"list"}, arr(w.insights).map(t=>h("li",{},t))))) : null,
+      h("section",{class:"section"},
+        h("h2",{},"Reels на неделю"),
+        w.posting && h("p",{class:"muted small"}, w.posting),
+        progressBar("r", reels.length),
+        reels.map((r,i)=>dayCard(r, "r"+i, false))),
+      arr(w.mechanics).length ? h("section",{class:"section"}, h("h2",{},"Что залетело в нише"),
+        h("div",{class:"card"}, arr(w.mechanics).map(m=>h("div",{class:"mech"},
+          h("div",{class:"mech-top"}, safeUrl(m.url) ? h("a",{href:m.url,target:"_blank",rel:"noopener"}, m.title) : h("b",{}, m.title), h("span",{class:"num"}, m.likes||"")),
+          m.why && h("p",{class:"muted small"}, m.why))))) : null
+    ];
+  }
+  function tiktokView(w){
+    const t = w.tiktok || {};
+    const vids = arr(t.videos);
+    if (!vids.length && !t.intro) return [h("div",{class:"empty"},"План для TikTok появится после воскресного анализа.")];
+    return [
+      t.intro && h("div",{class:"card focus"}, h("span",{class:"label"},"Как работаем в TikTok"), h("p",{}, t.intro)),
+      arr(t.tips).length ? h("div",{class:"card"}, h("span",{class:"label"},"Правила для TikTok"), h("ul",{class:"list small"}, arr(t.tips).map(x=>h("li",{},x)))) : null,
+      h("section",{class:"section"}, h("h2",{},"Видео на неделю"), progressBar("t", vids.length), vids.map((v,i)=>dayCard(v, "t"+i, true)))
+    ];
+  }
+  function profileView(w){
+    const p = w.profile || {};
+    const captionAll = [w.caption, w.hashtags].filter(Boolean).join("\n\n");
+    return [
+      h("section",{class:"section"}, h("h2",{},"Упаковка профиля"),
+        p.name && h("div",{class:"card"}, h("span",{class:"label"},"Имя профиля"), h("p",{}, p.name), copyButton(p.name,"Скопировать")),
+        p.bio && h("div",{class:"card"}, h("span",{class:"label"},"Шапка"), h("p",{style:"white-space:pre-line"}, p.bio), copyButton(p.bio,"Скопировать")),
+        arr(w.todo).length ? h("div",{class:"card"}, h("span",{class:"label"},"Сделать на этой неделе"), h("ul",{class:"list small"}, arr(w.todo).map(t=>h("li",{},t)))) : null),
+      captionAll ? h("section",{class:"section"}, h("h2",{},"Шаблон подписи"),
+        h("div",{class:"card"}, w.caption && h("p",{class:"small"}, w.caption), w.hashtags && h("p",{class:"small muted"}, w.hashtags), copyButton(captionAll,"Скопировать"))) : null,
+      arr(w.metrics).length ? h("section",{class:"section"}, h("h2",{},"Как понять, что работает"),
+        h("div",{class:"card"}, arr(w.metrics).map(m=>h("div",{class:"mech"}, h("div",{class:"mech-top"}, h("b",{}, m.label), h("span",{class:"num"}, m.target||"")), m.how && h("p",{class:"muted small"}, m.how))))) : null,
+      h("section",{class:"section"}, h("h2",{},"Как добавить на экран «Домой»"),
+        h("div",{class:"card small"}, h("ol",{class:"list"},
+          h("li",{},"Откройте эту страницу в Safari на iPhone."),
+          h("li",{},"Нажмите «Поделиться» — квадрат со стрелкой внизу экрана."),
+          h("li",{},"Выберите «На экран «Домой»» и нажмите «Добавить»."))))
+    ];
+  }
+  function archiveView(){
+    if (!state.weeks.length) return [statusView()];
+    return [
+      h("section",{class:"section"}, h("h2",{},"Все недели"),
+        h("p",{class:"muted small"},"Каждое воскресенье сюда добавляется новая неделя с разбором. Нажмите на неделю, чтобы открыть её план."),
+        state.weeks.map(w=>h("button",{class:"week-row",type:"button","aria-current":w.id===state.selectedId?"true":"false",
+          onclick:()=>{ state.selectedId = w.id; store.set(WEEK_KEY, w.id); watchProgress(); location.hash = "#week"; }},
+          h("span",{}, h("b",{}, w.title||w.id), h("br"), h("span",{class:"muted small"}, w.focus ? (w.focus.length>90 ? w.focus.slice(0,90)+"…" : w.focus) : "")),
+          h("span",{class:"num muted"},"›"))))
+    ];
+  }
+
+  function render(){
+    const view = document.getElementById("view");
+    if (!view || document.getElementById("app").hidden) return;
+    const w = current();
+    const tab = tabNow();
+    document.getElementById("top-title").textContent = w ? (w.title || "План недели") : "Контент-план";
+    document.getElementById("top-sub").textContent = (w && w.updatedAt) ? "Обновлено " + new Date(w.updatedAt).toLocaleDateString("ru-RU",{day:"numeric",month:"long"}) : "";
+    let nodes;
+    if (tab === "archive") nodes = archiveView();
+    else if (!w) nodes = [statusView()];
+    else if (tab === "tiktok") nodes = tiktokView(w);
+    else if (tab === "profile") nodes = profileView(w);
+    else nodes = weekView(w);
+    if (w && state.weeks[0] && w.id !== state.weeks[0].id && tab !== "archive") nodes.unshift(h("div",{class:"notice"},"Вы смотрите прошлую неделю. ", h("a",{href:"#archive"},"Открыть архив")));
+    if (w && !state.canWrite && tab !== "archive") nodes.unshift(h("div",{class:"notice"},"Отметки «Снято» и «Выложено» доступны только с правом редактирования."));
+    const openIdx = [...view.querySelectorAll("details")].map((d,i)=>d.open?i:-1).filter(i=>i>=0);
+    view.replaceChildren(...nodes.flat().filter(Boolean));
+    const ds = view.querySelectorAll("details");
+    openIdx.forEach(i=>{ if (ds[i]) ds[i].open = true; });
+  }
+
+  window.addEventListener("hashchange", route);
+  initGate();
+})();
+</script>
+</body>
+</html>
