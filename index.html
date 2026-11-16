@@ -50,7 +50,7 @@ button{font:inherit;color:inherit}
 .gate{min-height:80vh;display:flex;align-items:center;justify-content:center;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .gate-box{width:100%;max-width:340px;display:flex;flex-direction:column;gap:18px;text-align:center}
 .logo{width:72px;height:72px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-family:var(--display);font-size:24px;font-weight:700;margin:0 auto}
-.code-input{font-family:var(--display);font-size:26px;letter-spacing:.4em;text-align:center;padding:14px 10px 14px 20px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);width:100%}
+.code-input{font-family:var(--display);font-size:20px;letter-spacing:.08em;text-align:center;padding:14px 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);color:var(--fg);width:100%}
 .code-input:focus{border-color:var(--accent);outline:none}
 .btn{background:var(--accent);color:var(--accent-fg);border:0;border-radius:12px;padding:14px 18px;font-weight:800;font-size:16px;cursor:pointer}
 .btn:active{transform:scale(.98)}
@@ -113,6 +113,13 @@ details[open] summary::before{transform:rotate(90deg)}
 .nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--muted);font-size:11.5px;font-weight:800}
 .nav a svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nav a[aria-current="page"]{color:var(--accent)}
+.example{display:flex;flex-direction:column;gap:10px;background:var(--sunk);border-radius:12px;padding:12px}
+.ex-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.ex-tab{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 11px;font-size:12.5px;font-weight:700;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ex-tab[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.ex-play{align-self:stretch;background:var(--accent);color:var(--accent-fg);border:0;border-radius:10px;padding:12px;font-weight:800;cursor:pointer}
+.ex-frame{width:100%;max-width:400px;height:640px;border:0;border-radius:12px;background:#fff;align-self:center}
+.ex-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13.5px}
 @media (min-width:640px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .top{padding-top:max(20px,env(safe-area-inset-top,0px))}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -126,7 +133,7 @@ details[open] summary::before{transform:rotate(90deg)}
       <p class="muted small">Введите код доступа</p>
     </div>
     <label for="code" class="sr">Код доступа</label>
-    <input id="code" class="code-input" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="••••••">
+    <input id="code" class="code-input" type="text" inputmode="text" maxlength="40" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="xxxx-xxxx-xxxx">
     <button class="btn" type="submit">Войти</button>
     <p class="err" id="gate-err" role="alert"></p>
   </form>
@@ -310,6 +317,38 @@ details[open] summary::before{transform:rotate(90deg)}
     return h("div",{class:"refs"}, h("span",{class:"label"},"Образцы"),
       list.map(r=>h("div",{}, h("a",{href:r.url,target:"_blank",rel:"noopener"}, r.label||"Ролик"), r.note ? " — "+r.note : "")));
   }
+  function embedUrl(u){
+    const m = String(u).match(/instagram\.com\/(?:[^\/]+\/)?(?:p|reel|reels)\/([A-Za-z0-9_-]+)/);
+    return m ? "https://www.instagram.com/p/" + m[1] + "/embed/" : null;
+  }
+  function exampleBlock(refs){
+    const list = arr(refs).filter(r=>safeUrl(r.url));
+    if (!list.length) return null;
+    let idx = 0;
+    const box = h("div",{class:"example"});
+    const meta = h("div",{class:"ex-meta"});
+    const stage = h("div",{style:"display:flex;flex-direction:column"});
+    const tabs = list.length > 1 ? h("div",{class:"ex-tabs"}) : null;
+    function paintMeta(){
+      const r = list[idx];
+      meta.replaceChildren(h("span",{class:"muted"}, r.note || ""), h("a",{href:r.url,target:"_blank",rel:"noopener"},"Открыть в Instagram ↗"));
+      if (tabs) [...tabs.children].forEach((b,i)=>b.setAttribute("aria-pressed", i===idx ? "true" : "false"));
+    }
+    function showPlay(){
+      stage.replaceChildren(h("button",{class:"ex-play",type:"button",onclick:load}, "▶ Смотреть пример"));
+    }
+    function load(){
+      const src = embedUrl(list[idx].url);
+      if (!src){ window.open(list[idx].url, "_blank", "noopener"); return; }
+      stage.replaceChildren(h("iframe",{class:"ex-frame",src,loading:"lazy",allowfullscreen:true,title:"Пример: "+(list[idx].label||"ролик")}));
+    }
+    if (tabs) list.forEach((r,i)=>tabs.append(h("button",{class:"ex-tab",type:"button",onclick:()=>{ const playing = !!stage.querySelector("iframe"); idx = i; paintMeta(); playing ? load() : showPlay(); }}, (i+1)+". "+(r.label||"Пример"))));
+    box.append(h("span",{class:"label"}, list.length > 1 ? "Примеры видео — " + list.length : "Пример видео"));
+    if (tabs) box.append(tabs); else box.append(h("p",{class:"small"}, h("b",{}, list[0].label||"")));
+    box.append(stage, meta);
+    paintMeta(); showPlay();
+    return box;
+  }
   function progressBar(prefix, total){
     const done = Object.entries(weekProgress()).filter(([k,v])=>k.startsWith(prefix) && v && v.posted).length;
     const pct = total ? Math.round(done/total*100) : 0;
@@ -328,6 +367,7 @@ details[open] summary::before{transform:rotate(90deg)}
             item.goal && h("span",{class:"chip line"}, item.goal),
             item.time && h("span",{class:"chip line"}, item.time)))),
       item.hook && h("p",{class:"small"}, h("b",{},"Хук: "), item.hook),
+      exampleBlock(item.refs),
       toggles(key),
       h("details",{},
         h("summary",{}, isTT ? "Сценарий и подпись" : "Сценарий, сторис, образцы"),
@@ -337,7 +377,7 @@ details[open] summary::before{transform:rotate(90deg)}
           item.why && h("p",{class:"muted small"}, item.why),
           item.caption && h("div",{class:"det",style:"padding-top:0"}, h("span",{class:"label"},"Подпись"), h("p",{class:"small"}, item.caption), copyButton(item.caption,"Скопировать подпись")),
           arr(item.stories).length ? h("div",{}, h("span",{class:"label"},"Сторис / лайф-блог"), h("ul",{class:"list small"}, arr(item.stories).map(s=>h("li",{},s)))) : null,
-          refsBlock(item.refs))));
+          null)));
   }
   function weekView(w){
     const reels = arr(w.reels);
