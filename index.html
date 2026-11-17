@@ -109,7 +109,7 @@ details[open] summary::before{transform:rotate(90deg)}
 
 /* bottom nav */
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
-.nav-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--nav-h)}
+.nav-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav-h)}
 .nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;color:var(--muted);font-size:11.5px;font-weight:800}
 .nav a svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .nav a[aria-current="page"]{color:var(--accent)}
@@ -119,6 +119,10 @@ details[open] summary::before{transform:rotate(90deg)}
 .ex-tab[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
 .ex-play{align-self:stretch;background:var(--accent);color:var(--accent-fg);border:0;border-radius:10px;padding:12px;font-weight:800;cursor:pointer}
 .ex-frame{width:100%;max-width:400px;height:640px;border:0;border-radius:12px;background:#fff;align-self:center}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.model-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.model-head h3{overflow-wrap:anywhere}
+.msg{font-size:14px;background:var(--sunk);border-radius:10px;padding:12px;white-space:pre-line;margin:0}
 .ex-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13.5px}
 @media (min-width:640px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .top{padding-top:max(20px,env(safe-area-inset-top,0px))}
@@ -150,6 +154,7 @@ details[open] summary::before{transform:rotate(90deg)}
     <div class="nav-in">
       <a href="#week" data-tab="week"><svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>Неделя</a>
       <a href="#tiktok" data-tab="tiktok"><svg viewBox="0 0 24 24"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.5 2.6 2.3 4.4 5 4.7"/></svg>TikTok</a>
+      <a href="#models" data-tab="models"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c.9-3.4 3.4-5.2 6.5-5.2s5.6 1.8 6.5 5.2M15.5 14.6c2.6 0 4.6 1.5 5.4 4.4"/></svg>Модели</a>
       <a href="#profile" data-tab="profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/></svg>Профиль</a>
       <a href="#archive" data-tab="archive"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3zM2 3h20v4H2zM9.5 11.5h5"/></svg>Архив</a>
     </div>
@@ -163,7 +168,9 @@ details[open] summary::before{transform:rotate(90deg)}
   const PROGRESS_STORE = "alb-progress";
   const DATA_URL = "data.enc.json";
   const COPY_RESET_MS = 2500;
-  const TABS = ["week","tiktok","profile","archive"];
+  const TABS = ["week","tiktok","models","profile","archive"];
+  const MODEL_FILTER_KEY = "alb-model-filter";
+  const MODEL_STEPS = [["sent","Написали"],["replied","Ответил(а)"],["booked","Записан(а)"]];
 
   const state = { weeks:[], selectedId:null, progress:{}, canWrite:true, status:"loading", enc:null };
 
@@ -425,6 +432,44 @@ details[open] summary::before{transform:rotate(90deg)}
           h("li",{},"Выберите «На экран «Домой»» и нажмите «Добавить»."))))
     ];
   }
+  function modelCard(m){
+    const key = "m:" + m.handle;
+    const p = weekProgress()[key] || {};
+    const url = safeUrl(m.url) || ("https://www.instagram.com/" + encodeURIComponent(m.handle) + "/");
+    return h("article",{class:"card"},
+      h("div",{class:"model-head"},
+        h("div",{class:"day-title"},
+          h("h3",{}, h("a",{href:url,target:"_blank",rel:"noopener"}, "@" + m.handle)),
+          h("div",{class:"chips"},
+            h("span",{class:m.gender==="f"?"chip tt":"chip"}, m.gender==="f" ? "Девушка" : "Парень"),
+            m.followers && h("span",{class:"chip line"}, m.followers + " подп."),
+            h("span",{class:"chip line"}, m.moscow ? "Москва ✓" : "Москву проверить")))),
+      m.about && h("p",{class:"small"}, m.about),
+      m.why && h("p",{class:"muted small"}, m.why),
+      h("div",{class:"toggles"}, MODEL_STEPS.map(([f,label])=>h("button",{class:"tg",type:"button","aria-pressed":p[f]?"true":"false",onclick:()=>toggle(key,f)}, (p[f]?"✓ ":"") + label))),
+      m.message && h("details",{}, h("summary",{},"Сообщение в директ"),
+        h("div",{class:"det"}, h("p",{class:"msg"}, m.message), copyButton(m.message,"Скопировать сообщение"))));
+  }
+  function modelsView(w){
+    const md = w.models || {};
+    const people = arr(md.people);
+    if (!people.length) return [h("div",{class:"empty"},"Модели на эту неделю появятся после воскресного поиска.")];
+    const filter = store.get(MODEL_FILTER_KEY) || "all";
+    const shown = people.filter(m => filter === "all" || m.gender === filter);
+    const count = g => people.filter(m=>m.gender===g).length;
+    const setF = f => { store.set(MODEL_FILTER_KEY, f); render(); };
+    const sent = people.filter(m => (weekProgress()["m:"+m.handle]||{}).sent).length;
+    return [
+      md.intro && h("div",{class:"card focus"}, h("span",{class:"label"},"Как работаем с моделями"), h("p",{}, md.intro)),
+      arr(md.tips).length ? h("div",{class:"card"}, h("span",{class:"label"},"Правила"), h("ul",{class:"list small"}, arr(md.tips).map(x=>h("li",{},x)))) : null,
+      h("section",{class:"section"},
+        h("h2",{},"Кому написать"),
+        h("div",{class:"progress"}, h("div",{class:"bar"}, h("i",{style:"width:"+Math.round(sent/people.length*100)+"%"})), sent+" из "+people.length+" написали · отметки хранятся на этом телефоне"),
+        h("div",{class:"filters"}, [["all","Все · "+people.length],["m","Парни · "+count("m")],["f","Девушки · "+count("f")]].map(([f,label])=>
+          h("button",{class:"tg",type:"button","aria-pressed":filter===f?"true":"false",onclick:()=>setF(f)}, label))),
+        shown.length ? shown.map(modelCard) : h("div",{class:"empty"},"В этой группе пока никого."))
+    ];
+  }
   function archiveView(){
     if (!state.weeks.length) return [statusView()];
     return [
@@ -448,6 +493,7 @@ details[open] summary::before{transform:rotate(90deg)}
     if (tab === "archive") nodes = archiveView();
     else if (!w) nodes = [statusView()];
     else if (tab === "tiktok") nodes = tiktokView(w);
+    else if (tab === "models") nodes = modelsView(w);
     else if (tab === "profile") nodes = profileView(w);
     else nodes = weekView(w);
     if (w && state.weeks[0] && w.id !== state.weeks[0].id && tab !== "archive") nodes.unshift(h("div",{class:"notice"},"Вы смотрите прошлую неделю. ", h("a",{href:"#archive"},"Открыть архив")));
